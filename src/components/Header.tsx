@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
           }}
           className="font-display text-2xl font-semibold tracking-tight text-[#1C1917] hover:text-[#1B4332] transition-colors whitespace-nowrap shrink-0"
         >
-          Florilegium
+          My Favorite Flower
         </a>
 
         {/* Zone 2: 4 Single-line Navigation Links */}
@@ -39,6 +39,12 @@ export const Header: React.FC<HeaderProps> = ({
             Today&rsquo;s Bloom
           </a>
           <a
+            href="#birth-flower"
+            className="hover:text-[#1C1917] hover:underline underline-offset-4 decoration-[#1B4332]/40 transition-colors whitespace-nowrap shrink-0"
+          >
+            Birth Flower
+          </a>
+          <a
             href="#symbolism"
             className="hover:text-[#1C1917] hover:underline underline-offset-4 decoration-[#1B4332]/40 transition-colors whitespace-nowrap shrink-0"
           >
@@ -49,12 +55,6 @@ export const Header: React.FC<HeaderProps> = ({
             className="hover:text-[#1C1917] hover:underline underline-offset-4 decoration-[#1B4332]/40 transition-colors whitespace-nowrap shrink-0"
           >
             Herbarium
-          </a>
-          <a
-            href="#almanac"
-            className="hover:text-[#1C1917] hover:underline underline-offset-4 decoration-[#1B4332]/40 transition-colors whitespace-nowrap shrink-0"
-          >
-            Calendar
           </a>
         </nav>
 

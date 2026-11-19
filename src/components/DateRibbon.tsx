@@ -1,23 +1,30 @@
 import React from 'react';
-import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
+import { Bell, BellRing, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { formatEditorialDate, getDayOfYear, getSeasonForDate } from '../data/flowers';
+import { formatTimeLabel } from '../utils/notifications';
 
 interface DateRibbonProps {
   selectedDate: Date;
   isViewingCustomSpecimen: boolean;
   isToday: boolean;
+  notificationsActive: boolean;
+  reminderTime: string;
   onPrevDay: () => void;
   onNextDay: () => void;
   onReturnToday: () => void;
+  onOpenNotifications: () => void;
 }
 
 export const DateRibbon: React.FC<DateRibbonProps> = ({
   selectedDate,
   isViewingCustomSpecimen,
   isToday,
+  notificationsActive,
+  reminderTime,
   onPrevDay,
   onNextDay,
   onReturnToday,
+  onOpenNotifications,
 }) => {
   const dayOfYear = getDayOfYear(selectedDate);
   const season = getSeasonForDate(selectedDate);
@@ -39,7 +46,7 @@ export const DateRibbon: React.FC<DateRibbonProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {(!isToday || isViewingCustomSpecimen) && (
             <button
               type="button"
@@ -50,6 +57,26 @@ export const DateRibbon: React.FC<DateRibbonProps> = ({
               <span>Return to Today</span>
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={onOpenNotifications}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border transition-colors whitespace-nowrap shrink-0 tabular-nums cursor-pointer ${
+              notificationsActive
+                ? 'bg-[#1B4332]/10 text-[#143326] border-[#1B4332]/30 hover:bg-[#1B4332]/15'
+                : 'bg-[#FBF9F5] text-[#44403C] border-[#D8D0C2] hover:text-[#1C1917] hover:bg-[#EFEAE1]'
+            }`}
+          >
+            {notificationsActive ? (
+              <BellRing className="w-3.5 h-3.5 text-[#1B4332]" aria-hidden="true" />
+            ) : (
+              <Bell className="w-3.5 h-3.5" aria-hidden="true" />
+            )}
+            <span>
+              {notificationsActive ? `Notified · ${formatTimeLabel(reminderTime)}` : 'Get Notified'}
+            </span>
+          </button>
+
           <div className="inline-flex items-center border border-[#D8D0C2] rounded-md bg-[#FBF9F5]">
             <button
               type="button"

@@ -1048,6 +1048,135 @@ export const FLOWERS: FlowerSpecimen[] = [
     contemplationPrompt: 'What quiet joy becomes audible to you only after the noise of the day settles?',
     companionIds: ['white-lily', 'damask-rose'],
   },
+  {
+    id: 'bellis-daisy',
+    plateNumber: 'Plate XXV',
+    accessionCode: 'FLR. 1808.04',
+    commonName: 'Meadow Daisy',
+    latinName: 'Bellis perennis',
+    family: 'Asteraceae',
+    season: 'Spring',
+    bloomWindow: 'April – June',
+    nativeOrigin: 'European Grasslands & Orchards',
+    archetype: 'chrysanthemum',
+    palette: {
+      primary: '#F5F2EA',
+      secondary: '#E8C5CC',
+      center: '#D9A72E',
+      foliage: '#466844',
+      wash: '#EDE8DC',
+    },
+    primaryVirtues: ['Cheerful Candor', 'Loyal Simplicity', 'Innocence'],
+    shortEssence: 'A small sun rimmed with porcelain rays that wakes with dawn and folds at twilight.',
+    epigraph: {
+      quote: 'The day’s eye opens only to honest light and closes softly against the dark.',
+      author: 'Chaucerian Floral Gloss',
+    },
+    poeticEssay: [
+      'Before its name softened into "daisy," English speakers called this modest pasture flower "the day’s eye"—because every morning its crisp white rays uncurl to follow the sun, and every evening they tuck neatly shut over its golden disc.',
+      'Walk barefoot across an April lawn and Bellis perennis bends beneath the heel only to spring upright moments later, rosy-tipped on the underside of its petals as if brushed by morning frost.',
+      'In the language of flowers, the daisy belongs to unfeigned candor, loyal friendship, and a cheerful heart that sees wonder in ordinary daylight.',
+    ],
+    prosePoem: [
+      'A pocket sun with thirty porcelain rays,',
+      'Tipped faintly rose where April breezes blow;',
+      'You close your eye at dusk to dream of days',
+      'Where plain and honest kindnesses still grow.',
+    ],
+    floriography: {
+      victorian: 'Symbolized innocence, loyal love, and cheerful candor ("I share your sentiments").',
+      eastern: 'Admired in herbal gardens as a gentle emblem of clear morning vitality.',
+      mythic: 'Celtic legend told that daisies bloomed wherever kindness comforted a grieving parent.',
+    },
+    contemplationPrompt: 'What simple daily pleasure brings you back to a cheerful center?',
+    companionIds: ['winter-primrose', 'woodland-bluebell'],
+  },
+  {
+    id: 'lily-of-the-valley',
+    plateNumber: 'Plate XXVI',
+    accessionCode: 'FLR. 1827.05',
+    commonName: 'Lily of the Valley',
+    latinName: 'Convallaria majalis',
+    family: 'Asparagaceae',
+    season: 'Spring',
+    bloomWindow: 'May',
+    nativeOrigin: 'Cool Northern Woodlands',
+    archetype: 'bluebell',
+    palette: {
+      primary: '#F5F2EA',
+      secondary: '#FFFFFF',
+      center: '#DFCE8C',
+      foliage: '#2F573B',
+      wash: '#E3EAE2',
+    },
+    primaryVirtues: ['Return of Happiness', 'Sweet Humility', 'Pure Trust'],
+    shortEssence: 'Porcelain bells hung along an emerald arch, ringing May woods with green-dew perfume.',
+    epigraph: {
+      quote: 'No crown of gold can outsing a dozen small white bells beneath twin broad leaves.',
+      author: 'May Day Garland Book',
+    },
+    poeticEssay: [
+      'Between two broad, pleated emerald leaves rises a slender arching stem strung with tiny scalloped bells of pure alabaster. Every blossom hangs downward, shielding its honeyed scent until warm May air carries it along shaded paths.',
+      'Across France on the first of May, sprigs of muguet—lily of the valley—are gifted between friends and neighbors as a quiet blessing of good fortune and the return of light.',
+      'In floriography, it carries one of the tenderest meanings in the entire lexicon: "The return of happiness"—honoring joy that arrives softly after long waiting.',
+    ],
+    prosePoem: [
+      'Twelve porcelain bells upon a slender bow,',
+      'Shaded by twin broad sails of forest green;',
+      'You chime of quiet joy returned below',
+      'Where patient winter roots have waiting been.',
+    ],
+    floriography: {
+      victorian: 'Signified sweetness, humility, and the heartfelt promise: "Return of happiness."',
+      eastern: 'Treasured in northern gardens as Suzuran, an emblem of pure heart and renewed fortune.',
+      mythic: 'Woodland lore held that nightingales refused to return to the forest until lily of the valley bloomed.',
+    },
+    contemplationPrompt: 'What small joy has quietly returned to your life this season?',
+    companionIds: ['white-lily', 'woodland-bluebell'],
+  },
+  {
+    id: 'michaelmas-aster',
+    plateNumber: 'Plate XXVII',
+    accessionCode: 'FLR. 1846.09',
+    commonName: 'Michaelmas Aster',
+    latinName: 'Symphyotrichum novae-angliae',
+    family: 'Asteraceae',
+    season: 'Autumn',
+    bloomWindow: 'September – October',
+    nativeOrigin: 'North American Meadows & Borders',
+    archetype: 'chrysanthemum',
+    palette: {
+      primary: '#7D5BA6',
+      secondary: '#C9B8E2',
+      center: '#D9A73E',
+      foliage: '#445C42',
+      wash: '#E4DDEF',
+    },
+    primaryVirtues: ['Starlit Patience', 'Faithful Wisdom', 'Gentle Elegance'],
+    shortEssence: 'Hundreds of violet-lilac stars glittering along autumn hedgerows as swallows gather.',
+    epigraph: {
+      quote: 'When the summer gold cools into violet dusk, the asters light their constellations.',
+      author: 'Autumn Herbarium Ledger',
+    },
+    poeticEssay: [
+      'Named from the Greek word for "star," the aster waits until September breezes thin the summer canopy before bursting into clouds of lavender-violet rays around bright saffron centers.',
+      'Known in England as Michaelmas daisies because they reach full glory near late September, they serve as vital late-season larders for migrating butterflies and drowsy autumn bees.',
+      'In the language of flowers, the aster embodies patience, daintiness of thought, and love that keeps watch like evening stars—never loud, yet unmistakable once twilight falls.',
+    ],
+    prosePoem: [
+      'A hundred lilac stars along the lane,',
+      'Kindled when September cools the hill;',
+      'You keep the autumn twilight bright and plain',
+      'With quiet patience when the birds grow still.',
+    ],
+    floriography: {
+      victorian: 'Represented patience, elegance, and cherished remembrance ("Think of me calmly").',
+      eastern: 'Aster relatives appear in autumn mountain verses as emblems of clarity and faithful memory.',
+      mythic: 'Greek myth told that asters sprang from stardust wept by Astraea when she looked back at earth.',
+    },
+    contemplationPrompt: 'Where does steady patience feel more luminous than haste right now?',
+    companionIds: ['bronze-chrysanthemum', 'wild-lavender'],
+  },
 ];
 
 const SEASON_BY_MONTH: Record<number, Season> = {
@@ -1087,9 +1216,8 @@ export function getFlowerForDate(date: Date): FlowerSpecimen {
   const seasonalPool = FLOWERS.filter((f) => f.season === season);
   const pool = seasonalPool.length > 0 ? seasonalPool : FLOWERS;
   const dayNumber = getDayOfYear(date);
-  // Offset chosen so Nov 18 (day 322) opens on Winter Camellia (Plate I),
-  // an evocative late-autumn bloom.
-  const index = (dayNumber + 2) % pool.length;
+  // Day 322 (Nov 18) % 7 === 0 -> Winter Camellia (Plate I).
+  const index = dayNumber % pool.length;
   return pool[index];
 }
 

@@ -145,7 +145,7 @@ export const HerbariumArchive: React.FC<HerbariumArchiveProps> = ({
                 Curated Herbarium
               </p>
               <h2 className="font-display text-3xl sm:text-4xl font-medium text-[#1C1917] headline-balance">
-                Twenty-Four Seasonal Specimens
+                {FLOWERS.length} Seasonal Specimens
               </h2>
               <p className="font-prose text-base text-[#57534E] mt-2 leading-relaxed">
                 Browse the complete folio by season or search by meaning, virtue, or botanical name.

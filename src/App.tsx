@@ -1,18 +1,30 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Bookmark, BookmarkCheck, Check, Copy, Maximize2 } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Maximize2, Share2 } from 'lucide-react';
 import {
-  formatEditorialDate,
   getFlowerById,
   getFlowerForDate,
   isSameCalendarDay,
 } from './data/flowers';
 import { FlowerSpecimen, SavedFolioEntry } from './types/flower';
+import { BirthFlowerFinder } from './components/BirthFlowerFinder';
 import { BotanicalPlate } from './components/BotanicalPlate';
 import { DateRibbon } from './components/DateRibbon';
 import { FolioDrawer } from './components/FolioDrawer';
 import { Header } from './components/Header';
 import { HerbariumArchive } from './components/HerbariumArchive';
+import { NotificationModal } from './components/NotificationModal';
 import { PlateModal } from './components/PlateModal';
+import { ShareModal } from './components/ShareModal';
+import {
+  NotificationSettings,
+  getNotificationPermission,
+  getTodayDateKey,
+  isNotificationSupported,
+  loadNotificationSettings,
+  saveNotificationSettings,
+  sendFlowerNotification,
+  shouldTriggerDailyReminder,
+} from './utils/notifications';
 
 const STORAGE_KEY = 'florilegium_saved_folio_v1';
 
@@ -28,9 +40,27 @@ function loadSavedFolio(): SavedFolioEntry[] {
 }
 
 export default function App() {
-  const [today] = useState<Date>(() => new Date());
+  const [initialUrlParams] = useState(() => {
+    if (typeof window === 'undefined') {
+      return { flower: null as FlowerSpecimen | null, birthMonth: undefined as number | undefined };
+    }
+    const params = new URLSearchParams(window.location.search);
+    const flowerParam = params.get('flower');
+    const birthMonthParam = Number(params.get('birthMonth'));
+    return {
+      flower: flowerParam ? (getFlowerById(flowerParam) ?? null) : null,
+      birthMonth:
+        !Number.isNaN(birthMonthParam) && birthMonthParam >= 1 && birthMonthParam <= 12
+          ? birthMonthParam
+          : undefined,
+    };
+  });
+
+  const [today, setToday] = useState<Date>(() => new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
-  const [customSpecimen, setCustomSpecimen] = useState<FlowerSpecimen | null>(null);
+  const [customSpecimen, setCustomSpecimen] = useState<FlowerSpecimen | null>(
+    initialUrlParams.flower
+  );
 
   const [savedEntries, setSavedEntries] = useState<SavedFolioEntry[]>(loadSavedFolio);
   const [isFolioOpen, setIsFolioOpen] = useState(false);
@@ -38,7 +68,19 @@ export default function App() {
 
   const [noteDraft, setNoteDraft] = useState('');
   const [noteSavedFeedback, setNoteSavedFeedback] = useState(false);
-  const [copiedVerse, setCopiedVerse] = useState(false);
+  const [shareState, setShareState] = useState<{
+    flower: FlowerSpecimen;
+    contextLabel: string;
+    birthMonth?: number;
+  } | null>(null);
+
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(
+    loadNotificationSettings
+  );
+  const [notificationPermission, setNotificationPermission] = useState<
+    NotificationPermission | 'unsupported'
+  >(getNotificationPermission);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -48,6 +90,56 @@ export default function App() {
     }
   }, [savedEntries]);
 
+  useEffect(() => {
+    saveNotificationSettings(notificationSettings);
+  }, [notificationSettings]);
+
+  // Daily reminder scheduler & midnight rollover detector
+  useEffect(() => {
+    const checkAndDispatchReminder = () => {
+      const now = new Date();
+      if (!isSameCalendarDay(now, today)) {
+        setToday(now);
+      }
+
+      if (shouldTriggerDailyReminder(notificationSettings, now)) {
+        const flowerForNow = getFlowerForDate(now);
+        const result = sendFlowerNotification(flowerForNow, {
+          onClick: () => {
+            setCustomSpecimen(null);
+            setSelectedDate(new Date(now));
+          },
+        });
+        if (result.ok) {
+          const todayKey = getTodayDateKey(now);
+          setNotificationSettings((prev) => ({
+            ...prev,
+            lastNotifiedDateKey: todayKey,
+          }));
+        }
+      }
+    };
+
+    checkAndDispatchReminder();
+    const intervalId = window.setInterval(checkAndDispatchReminder, 30_000);
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        setNotificationPermission(getNotificationPermission());
+        checkAndDispatchReminder();
+      }
+    };
+
+    window.addEventListener('focus', handleVisibilityOrFocus);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+    };
+  }, [notificationSettings, today]);
+
+  const todayFlower = useMemo(() => getFlowerForDate(today), [today]);
   const dailyFlower = useMemo(() => getFlowerForDate(selectedDate), [selectedDate]);
   const activeFlower = customSpecimen ?? dailyFlower;
   const isToday = isSameCalendarDay(selectedDate, today);
@@ -148,24 +240,82 @@ export default function App() {
     setSavedEntries((prev) => prev.filter((e) => e.flowerId !== flowerId));
   };
 
-  const handleShareVerse = async () => {
-    const formatted = [
-      `${activeFlower.commonName} (${activeFlower.latinName})`,
-      `${activeFlower.primaryVirtues.join(' · ')}`,
-      '',
-      activeFlower.prosePoem.join('\n'),
-      '',
-      `— Florilegium · ${formatEditorialDate(selectedDate)}`,
-    ].join('\n');
-
-    try {
-      await navigator.clipboard.writeText(formatted);
-      setCopiedVerse(true);
-      setTimeout(() => setCopiedVerse(false), 2000);
-    } catch {
-      // Clipboard unavailable
-    }
+  const handleOpenShare = (
+    flower: FlowerSpecimen,
+    contextLabel: string,
+    birthMonth?: number
+  ) => {
+    setShareState({ flower, contextLabel, birthMonth });
   };
+
+  const handleEnableNotifications = async (
+    reminderTime: string
+  ): Promise<{ ok: boolean; message?: string }> => {
+    if (!isNotificationSupported()) {
+      setNotificationPermission('unsupported');
+      return {
+        ok: false,
+        message: 'This browser does not support desktop notifications.',
+      };
+    }
+
+    let permission = window.Notification.permission;
+    if (permission === 'default') {
+      try {
+        permission = await window.Notification.requestPermission();
+      } catch {
+        return {
+          ok: false,
+          message: 'Unable to request notification permission in this context.',
+        };
+      }
+    }
+
+    setNotificationPermission(permission);
+
+    if (permission !== 'granted') {
+      return {
+        ok: false,
+        message:
+          'Permission was declined. You can allow notifications later in your browser site settings.',
+      };
+    }
+
+    setNotificationSettings((prev) => ({
+      ...prev,
+      enabled: true,
+      reminderTime,
+    }));
+
+    return { ok: true };
+  };
+
+  const handleDisableNotifications = () => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      enabled: false,
+    }));
+  };
+
+  const handleUpdateReminderTime = (reminderTime: string) => {
+    setNotificationSettings((prev) => ({
+      ...prev,
+      reminderTime,
+    }));
+  };
+
+  const handleSendTestNotification = () => {
+    return sendFlowerNotification(todayFlower, {
+      isTest: true,
+      onClick: () => {
+        handleReturnToday();
+        setIsNotificationModalOpen(false);
+      },
+    });
+  };
+
+  const notificationsActive =
+    notificationSettings.enabled && notificationPermission === 'granted';
 
   const kickerLabel = customSpecimen
     ? 'Herbarium Monograph'
@@ -185,9 +335,15 @@ export default function App() {
         selectedDate={selectedDate}
         isViewingCustomSpecimen={Boolean(customSpecimen)}
         isToday={isToday}
+        notificationsActive={notificationsActive}
+        reminderTime={notificationSettings.reminderTime}
         onPrevDay={handlePrevDay}
         onNextDay={handleNextDay}
         onReturnToday={handleReturnToday}
+        onOpenNotifications={() => {
+          setNotificationPermission(getNotificationPermission());
+          setIsNotificationModalOpen(true);
+        }}
       />
 
       <main className="flex-1">
@@ -238,20 +394,11 @@ export default function App() {
 
                 <button
                   type="button"
-                  onClick={handleShareVerse}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#57534E] hover:text-[#1C1917] border border-transparent hover:border-[#D8D0C2] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                  onClick={() => handleOpenShare(activeFlower, kickerLabel)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#1C1917] bg-[#F4EFE6] hover:bg-[#EAE3D5] border border-[#D8D0C2] rounded-md transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                 >
-                  {copiedVerse ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-[#1B4332]" aria-hidden="true" />
-                      <span className="text-[#1B4332]">Verse Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-                      <span>Copy Verse</span>
-                    </>
-                  )}
+                  <Share2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Share Flower</span>
                 </button>
               </div>
             </div>
@@ -444,6 +591,13 @@ export default function App() {
           </div>
         </section>
 
+        {/* Birth Flower Finder */}
+        <BirthFlowerFinder
+          initialMonth={initialUrlParams.birthMonth}
+          onSelectFlower={handleSelectSpecimen}
+          onShareFlower={handleOpenShare}
+        />
+
         {/* Almanac Calendar & Seasonal Herbarium Archive */}
         <HerbariumArchive
           activeFlowerId={activeFlower.id}
@@ -457,13 +611,18 @@ export default function App() {
       <footer className="border-t border-[#E3DDD1] bg-[#FBF9F5] py-10">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[#6B645B]">
           <div>
-            <span className="font-display text-base font-semibold text-[#1C1917]">Florilegium</span>
+            <span className="font-display text-base font-semibold text-[#1C1917]">
+              My Favorite Flower
+            </span>
             <span aria-hidden="true" className="mx-2">·</span>
-            <span>A Seasonal Almanac of Botanical Symbolism &amp; Floriography</span>
+            <span>Daily Floriography, Birth Flowers &amp; Botanical Symbolism</span>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-5">
             <a href="#todays-bloom" className="hover:text-[#1C1917] transition-colors">
               Today&rsquo;s Bloom
+            </a>
+            <a href="#birth-flower" className="hover:text-[#1C1917] transition-colors">
+              Birth Flower
             </a>
             <a href="#symbolism" className="hover:text-[#1C1917] transition-colors">
               Symbolism
@@ -471,6 +630,16 @@ export default function App() {
             <a href="#herbarium" className="hover:text-[#1C1917] transition-colors">
               Herbarium
             </a>
+            <button
+              type="button"
+              onClick={() => {
+                setNotificationPermission(getNotificationPermission());
+                setIsNotificationModalOpen(true);
+              }}
+              className="hover:text-[#1C1917] transition-colors cursor-pointer"
+            >
+              Get Notified
+            </button>
           </div>
         </div>
       </footer>
@@ -487,6 +656,28 @@ export default function App() {
         flower={inspectedFlower}
         onClose={() => setInspectedFlower(null)}
       />
+
+      <NotificationModal
+        isOpen={isNotificationModalOpen}
+        todayFlower={todayFlower}
+        settings={notificationSettings}
+        permission={notificationPermission}
+        onClose={() => setIsNotificationModalOpen(false)}
+        onEnableNotifications={handleEnableNotifications}
+        onDisableNotifications={handleDisableNotifications}
+        onUpdateTime={handleUpdateReminderTime}
+        onSendTestNotification={handleSendTestNotification}
+      />
+
+      {shareState && (
+        <ShareModal
+          isOpen={Boolean(shareState)}
+          flower={shareState.flower}
+          contextLabel={shareState.contextLabel}
+          birthMonth={shareState.birthMonth}
+          onClose={() => setShareState(null)}
+        />
+      )}
     </div>
   );
 }
